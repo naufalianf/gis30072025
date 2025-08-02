@@ -1,0 +1,2049 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
+        <link rel="stylesheet" href="css/L.Control.Locate.min.css">
+        <link rel="stylesheet" href="css/qgis2web.css">
+        <link rel="stylesheet" href="css/fontawesome-all.min.css">
+        <link rel="stylesheet" href="css/MarkerCluster.css">
+        <link rel="stylesheet" href="css/MarkerCluster.Default.css">
+        <link rel="stylesheet" href="css/leaflet.photon.css">
+        <link rel="stylesheet" href="css/leaflet-measure.css">
+        <style>
+        html, body, #map {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+        </style>
+        <title>Sistem Informasi Geografis Badan Gizi Nasional</title>
+    </head>
+    <body>
+        <div id="map">
+        </div>
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/L.Control.Layers.Tree.min.js"></script>
+        <script src="js/L.Control.Locate.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="js/leaflet.photon.js"></script>
+        <script src="js/leaflet-measure.js"></script>
+        <script src="js/leaflet.markercluster.js"></script>
+        <script src="data/Bali_1.js"></script>
+        <script src="data/Sulawesi_Utara_2.js"></script>
+        <script src="data/Sulawesi_Tenggara_3.js"></script>
+        <script src="data/Sulawesi_Tengah_4.js"></script>
+        <script src="data/Sulawesi_Selatan_5.js"></script>
+        <script src="data/Sulawesi_Barat_6.js"></script>
+        <script src="data/Papua_Tengah_7.js"></script>
+        <script src="data/Papua_Selatan_8.js"></script>
+        <script src="data/Papua_Pegunungan_9.js"></script>
+        <script src="data/Papua_Barat_Daya_10.js"></script>
+        <script src="data/Papua_Barat_11.js"></script>
+        <script src="data/Papua_12.js"></script>
+        <script src="data/Gorontalo_13.js"></script>
+        <script src="data/NTT_14.js"></script>
+        <script src="data/NTB_15.js"></script>
+        <script src="data/Malut_16.js"></script>
+        <script src="data/Maluku_17.js"></script>
+        <script src="data/Kaltara_18.js"></script>
+        <script src="data/Kaltim_19.js"></script>
+        <script src="data/Kalteng_20.js"></script>
+        <script src="data/Kalsel_21.js"></script>
+        <script src="data/Kalbar_22.js"></script>
+        <script src="data/Banten_23.js"></script>
+        <script src="data/Jatim_24.js"></script>
+        <script src="data/Jateng_25.js"></script>
+        <script src="data/Jabar_26.js"></script>
+        <script src="data/Jakarta_27.js"></script>
+        <script src="data/DIY_28.js"></script>
+        <script src="data/Lampung_29.js"></script>
+        <script src="data/Bengkulu_30.js"></script>
+        <script src="data/Jambi_31.js"></script>
+        <script src="data/BangkaBel_32.js"></script>
+        <script src="data/KepRiau_33.js"></script>
+        <script src="data/Riau_34.js"></script>
+        <script src="data/Aceh_35.js"></script>
+        <script src="data/Sumatera_Utara_36.js"></script>
+        <script src="data/Sumatera_Selatan_37.js"></script>
+        <script src="data/Sumatera_Barat_38.js"></script>
+        <script src="data/BatasKabupatenKota_39.js"></script>
+        <script src="data/Wilayah3T_40.js"></script>
+        <script src="data/TitikSPPG1Agustus2025_41.js"></script>
+        <script>
+        var map = L.map('map', {
+            zoomControl:false, maxZoom:28, minZoom:1
+        }).fitBounds([[-14.31562126785408,91.97342512109745],[16.578663522645805,141.97846028131016]]);
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        // remove popup's row if "visible-with-data"
+        function removeEmptyRowsFromPopupContent(content, feature) {
+         var tempDiv = document.createElement('div');
+         tempDiv.innerHTML = content;
+         var rows = tempDiv.querySelectorAll('tr');
+         for (var i = 0; i < rows.length; i++) {
+             var td = rows[i].querySelector('td.visible-with-data');
+             var key = td ? td.id : '';
+             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
+                 rows[i].parentNode.removeChild(rows[i]);
+             }
+         }
+         return tempDiv.innerHTML;
+        }
+        // add class to format popup if it contains media
+		function addClassToPopupIfMedia(content, popup) {
+			var tempDiv = document.createElement('div');
+			tempDiv.innerHTML = content;
+			if (tempDiv.querySelector('td img')) {
+				popup._contentNode.classList.add('media');
+					// Delay to force the redraw
+					setTimeout(function() {
+						popup.update();
+					}, 10);
+			} else {
+				popup._contentNode.classList.remove('media');
+			}
+		}
+        var title = new L.Control({'position':'topleft'});
+        title.onAdd = function (map) {
+            this._div = L.DomUtil.create('div', 'info');
+            this.update();
+            return this._div;
+        };
+        title.update = function () {
+            this._div.innerHTML = '<h2>Sistem Informasi Geografis Badan Gizi Nasional</h2>';
+        };
+        title.addTo(map);
+        var zoomControl = L.control.zoom({
+            position: 'topleft'
+        }).addTo(map);
+        L.control.locate({locateOptions: {maxZoom: 19}}).addTo(map);
+        var measureControl = new L.Control.Measure({
+            position: 'topleft',
+            primaryLengthUnit: 'meters',
+            secondaryLengthUnit: 'kilometers',
+            primaryAreaUnit: 'sqmeters',
+            secondaryAreaUnit: 'hectares'
+        });
+        measureControl.addTo(map);
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].innerHTML = '';
+        document.getElementsByClassName('leaflet-control-measure-toggle')[0].className += ' fas fa-ruler';
+        var bounds_group = new L.featureGroup([]);
+        function setBounds() {
+        }
+        map.createPane('pane_OpenStreetMap_0');
+        map.getPane('pane_OpenStreetMap_0').style.zIndex = 400;
+        var layer_OpenStreetMap_0 = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            pane: 'pane_OpenStreetMap_0',
+            opacity: 1.0,
+            attribution: '',
+            minZoom: 1,
+            maxZoom: 28,
+            minNativeZoom: 0,
+            maxNativeZoom: 19
+        });
+        layer_OpenStreetMap_0;
+        function pop_Bali_1(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Bali_1_0() {
+            return {
+                pane: 'pane_Bali_1',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Bali_1');
+        map.getPane('pane_Bali_1').style.zIndex = 401;
+        map.getPane('pane_Bali_1').style['mix-blend-mode'] = 'normal';
+        var layer_Bali_1 = new L.geoJson(json_Bali_1, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Bali_1',
+            layerName: 'layer_Bali_1',
+            pane: 'pane_Bali_1',
+            onEachFeature: pop_Bali_1,
+            style: style_Bali_1_0,
+        });
+        bounds_group.addLayer(layer_Bali_1);
+        map.addLayer(layer_Bali_1);
+        function pop_Sulawesi_Utara_2(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Sulawesi_Utara_2_0() {
+            return {
+                pane: 'pane_Sulawesi_Utara_2',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Sulawesi_Utara_2');
+        map.getPane('pane_Sulawesi_Utara_2').style.zIndex = 402;
+        map.getPane('pane_Sulawesi_Utara_2').style['mix-blend-mode'] = 'normal';
+        var layer_Sulawesi_Utara_2 = new L.geoJson(json_Sulawesi_Utara_2, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Sulawesi_Utara_2',
+            layerName: 'layer_Sulawesi_Utara_2',
+            pane: 'pane_Sulawesi_Utara_2',
+            onEachFeature: pop_Sulawesi_Utara_2,
+            style: style_Sulawesi_Utara_2_0,
+        });
+        bounds_group.addLayer(layer_Sulawesi_Utara_2);
+        map.addLayer(layer_Sulawesi_Utara_2);
+        function pop_Sulawesi_Tenggara_3(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Sulawesi_Tenggara_3_0() {
+            return {
+                pane: 'pane_Sulawesi_Tenggara_3',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Sulawesi_Tenggara_3');
+        map.getPane('pane_Sulawesi_Tenggara_3').style.zIndex = 403;
+        map.getPane('pane_Sulawesi_Tenggara_3').style['mix-blend-mode'] = 'normal';
+        var layer_Sulawesi_Tenggara_3 = new L.geoJson(json_Sulawesi_Tenggara_3, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Sulawesi_Tenggara_3',
+            layerName: 'layer_Sulawesi_Tenggara_3',
+            pane: 'pane_Sulawesi_Tenggara_3',
+            onEachFeature: pop_Sulawesi_Tenggara_3,
+            style: style_Sulawesi_Tenggara_3_0,
+        });
+        bounds_group.addLayer(layer_Sulawesi_Tenggara_3);
+        map.addLayer(layer_Sulawesi_Tenggara_3);
+        function pop_Sulawesi_Tengah_4(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Sulawesi_Tengah_4_0() {
+            return {
+                pane: 'pane_Sulawesi_Tengah_4',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Sulawesi_Tengah_4');
+        map.getPane('pane_Sulawesi_Tengah_4').style.zIndex = 404;
+        map.getPane('pane_Sulawesi_Tengah_4').style['mix-blend-mode'] = 'normal';
+        var layer_Sulawesi_Tengah_4 = new L.geoJson(json_Sulawesi_Tengah_4, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Sulawesi_Tengah_4',
+            layerName: 'layer_Sulawesi_Tengah_4',
+            pane: 'pane_Sulawesi_Tengah_4',
+            onEachFeature: pop_Sulawesi_Tengah_4,
+            style: style_Sulawesi_Tengah_4_0,
+        });
+        bounds_group.addLayer(layer_Sulawesi_Tengah_4);
+        map.addLayer(layer_Sulawesi_Tengah_4);
+        function pop_Sulawesi_Selatan_5(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Sulawesi_Selatan_5_0() {
+            return {
+                pane: 'pane_Sulawesi_Selatan_5',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Sulawesi_Selatan_5');
+        map.getPane('pane_Sulawesi_Selatan_5').style.zIndex = 405;
+        map.getPane('pane_Sulawesi_Selatan_5').style['mix-blend-mode'] = 'normal';
+        var layer_Sulawesi_Selatan_5 = new L.geoJson(json_Sulawesi_Selatan_5, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Sulawesi_Selatan_5',
+            layerName: 'layer_Sulawesi_Selatan_5',
+            pane: 'pane_Sulawesi_Selatan_5',
+            onEachFeature: pop_Sulawesi_Selatan_5,
+            style: style_Sulawesi_Selatan_5_0,
+        });
+        bounds_group.addLayer(layer_Sulawesi_Selatan_5);
+        map.addLayer(layer_Sulawesi_Selatan_5);
+        function pop_Sulawesi_Barat_6(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Sulawesi_Barat_6_0() {
+            return {
+                pane: 'pane_Sulawesi_Barat_6',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Sulawesi_Barat_6');
+        map.getPane('pane_Sulawesi_Barat_6').style.zIndex = 406;
+        map.getPane('pane_Sulawesi_Barat_6').style['mix-blend-mode'] = 'normal';
+        var layer_Sulawesi_Barat_6 = new L.geoJson(json_Sulawesi_Barat_6, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Sulawesi_Barat_6',
+            layerName: 'layer_Sulawesi_Barat_6',
+            pane: 'pane_Sulawesi_Barat_6',
+            onEachFeature: pop_Sulawesi_Barat_6,
+            style: style_Sulawesi_Barat_6_0,
+        });
+        bounds_group.addLayer(layer_Sulawesi_Barat_6);
+        map.addLayer(layer_Sulawesi_Barat_6);
+        function pop_Papua_Tengah_7(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Papua_Tengah_7_0() {
+            return {
+                pane: 'pane_Papua_Tengah_7',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Papua_Tengah_7');
+        map.getPane('pane_Papua_Tengah_7').style.zIndex = 407;
+        map.getPane('pane_Papua_Tengah_7').style['mix-blend-mode'] = 'normal';
+        var layer_Papua_Tengah_7 = new L.geoJson(json_Papua_Tengah_7, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Papua_Tengah_7',
+            layerName: 'layer_Papua_Tengah_7',
+            pane: 'pane_Papua_Tengah_7',
+            onEachFeature: pop_Papua_Tengah_7,
+            style: style_Papua_Tengah_7_0,
+        });
+        bounds_group.addLayer(layer_Papua_Tengah_7);
+        map.addLayer(layer_Papua_Tengah_7);
+        function pop_Papua_Selatan_8(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Papua_Selatan_8_0() {
+            return {
+                pane: 'pane_Papua_Selatan_8',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Papua_Selatan_8');
+        map.getPane('pane_Papua_Selatan_8').style.zIndex = 408;
+        map.getPane('pane_Papua_Selatan_8').style['mix-blend-mode'] = 'normal';
+        var layer_Papua_Selatan_8 = new L.geoJson(json_Papua_Selatan_8, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Papua_Selatan_8',
+            layerName: 'layer_Papua_Selatan_8',
+            pane: 'pane_Papua_Selatan_8',
+            onEachFeature: pop_Papua_Selatan_8,
+            style: style_Papua_Selatan_8_0,
+        });
+        bounds_group.addLayer(layer_Papua_Selatan_8);
+        map.addLayer(layer_Papua_Selatan_8);
+        function pop_Papua_Pegunungan_9(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Papua_Pegunungan_9_0() {
+            return {
+                pane: 'pane_Papua_Pegunungan_9',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Papua_Pegunungan_9');
+        map.getPane('pane_Papua_Pegunungan_9').style.zIndex = 409;
+        map.getPane('pane_Papua_Pegunungan_9').style['mix-blend-mode'] = 'normal';
+        var layer_Papua_Pegunungan_9 = new L.geoJson(json_Papua_Pegunungan_9, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Papua_Pegunungan_9',
+            layerName: 'layer_Papua_Pegunungan_9',
+            pane: 'pane_Papua_Pegunungan_9',
+            onEachFeature: pop_Papua_Pegunungan_9,
+            style: style_Papua_Pegunungan_9_0,
+        });
+        bounds_group.addLayer(layer_Papua_Pegunungan_9);
+        map.addLayer(layer_Papua_Pegunungan_9);
+        function pop_Papua_Barat_Daya_10(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Papua_Barat_Daya_10_0() {
+            return {
+                pane: 'pane_Papua_Barat_Daya_10',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Papua_Barat_Daya_10');
+        map.getPane('pane_Papua_Barat_Daya_10').style.zIndex = 410;
+        map.getPane('pane_Papua_Barat_Daya_10').style['mix-blend-mode'] = 'normal';
+        var layer_Papua_Barat_Daya_10 = new L.geoJson(json_Papua_Barat_Daya_10, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Papua_Barat_Daya_10',
+            layerName: 'layer_Papua_Barat_Daya_10',
+            pane: 'pane_Papua_Barat_Daya_10',
+            onEachFeature: pop_Papua_Barat_Daya_10,
+            style: style_Papua_Barat_Daya_10_0,
+        });
+        bounds_group.addLayer(layer_Papua_Barat_Daya_10);
+        map.addLayer(layer_Papua_Barat_Daya_10);
+        function pop_Papua_Barat_11(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Papua_Barat_11_0() {
+            return {
+                pane: 'pane_Papua_Barat_11',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Papua_Barat_11');
+        map.getPane('pane_Papua_Barat_11').style.zIndex = 411;
+        map.getPane('pane_Papua_Barat_11').style['mix-blend-mode'] = 'normal';
+        var layer_Papua_Barat_11 = new L.geoJson(json_Papua_Barat_11, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Papua_Barat_11',
+            layerName: 'layer_Papua_Barat_11',
+            pane: 'pane_Papua_Barat_11',
+            onEachFeature: pop_Papua_Barat_11,
+            style: style_Papua_Barat_11_0,
+        });
+        bounds_group.addLayer(layer_Papua_Barat_11);
+        map.addLayer(layer_Papua_Barat_11);
+        function pop_Papua_12(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Papua_12_0() {
+            return {
+                pane: 'pane_Papua_12',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Papua_12');
+        map.getPane('pane_Papua_12').style.zIndex = 412;
+        map.getPane('pane_Papua_12').style['mix-blend-mode'] = 'normal';
+        var layer_Papua_12 = new L.geoJson(json_Papua_12, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Papua_12',
+            layerName: 'layer_Papua_12',
+            pane: 'pane_Papua_12',
+            onEachFeature: pop_Papua_12,
+            style: style_Papua_12_0,
+        });
+        bounds_group.addLayer(layer_Papua_12);
+        map.addLayer(layer_Papua_12);
+        function pop_Gorontalo_13(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Gorontalo_13_0() {
+            return {
+                pane: 'pane_Gorontalo_13',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Gorontalo_13');
+        map.getPane('pane_Gorontalo_13').style.zIndex = 413;
+        map.getPane('pane_Gorontalo_13').style['mix-blend-mode'] = 'normal';
+        var layer_Gorontalo_13 = new L.geoJson(json_Gorontalo_13, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Gorontalo_13',
+            layerName: 'layer_Gorontalo_13',
+            pane: 'pane_Gorontalo_13',
+            onEachFeature: pop_Gorontalo_13,
+            style: style_Gorontalo_13_0,
+        });
+        bounds_group.addLayer(layer_Gorontalo_13);
+        map.addLayer(layer_Gorontalo_13);
+        function pop_NTT_14(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_NTT_14_0() {
+            return {
+                pane: 'pane_NTT_14',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_NTT_14');
+        map.getPane('pane_NTT_14').style.zIndex = 414;
+        map.getPane('pane_NTT_14').style['mix-blend-mode'] = 'normal';
+        var layer_NTT_14 = new L.geoJson(json_NTT_14, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_NTT_14',
+            layerName: 'layer_NTT_14',
+            pane: 'pane_NTT_14',
+            onEachFeature: pop_NTT_14,
+            style: style_NTT_14_0,
+        });
+        bounds_group.addLayer(layer_NTT_14);
+        map.addLayer(layer_NTT_14);
+        function pop_NTB_15(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_NTB_15_0() {
+            return {
+                pane: 'pane_NTB_15',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_NTB_15');
+        map.getPane('pane_NTB_15').style.zIndex = 415;
+        map.getPane('pane_NTB_15').style['mix-blend-mode'] = 'normal';
+        var layer_NTB_15 = new L.geoJson(json_NTB_15, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_NTB_15',
+            layerName: 'layer_NTB_15',
+            pane: 'pane_NTB_15',
+            onEachFeature: pop_NTB_15,
+            style: style_NTB_15_0,
+        });
+        bounds_group.addLayer(layer_NTB_15);
+        map.addLayer(layer_NTB_15);
+        function pop_Malut_16(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Malut_16_0() {
+            return {
+                pane: 'pane_Malut_16',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Malut_16');
+        map.getPane('pane_Malut_16').style.zIndex = 416;
+        map.getPane('pane_Malut_16').style['mix-blend-mode'] = 'normal';
+        var layer_Malut_16 = new L.geoJson(json_Malut_16, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Malut_16',
+            layerName: 'layer_Malut_16',
+            pane: 'pane_Malut_16',
+            onEachFeature: pop_Malut_16,
+            style: style_Malut_16_0,
+        });
+        bounds_group.addLayer(layer_Malut_16);
+        map.addLayer(layer_Malut_16);
+        function pop_Maluku_17(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Maluku_17_0() {
+            return {
+                pane: 'pane_Maluku_17',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Maluku_17');
+        map.getPane('pane_Maluku_17').style.zIndex = 417;
+        map.getPane('pane_Maluku_17').style['mix-blend-mode'] = 'normal';
+        var layer_Maluku_17 = new L.geoJson(json_Maluku_17, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Maluku_17',
+            layerName: 'layer_Maluku_17',
+            pane: 'pane_Maluku_17',
+            onEachFeature: pop_Maluku_17,
+            style: style_Maluku_17_0,
+        });
+        bounds_group.addLayer(layer_Maluku_17);
+        map.addLayer(layer_Maluku_17);
+        function pop_Kaltara_18(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Kaltara_18_0() {
+            return {
+                pane: 'pane_Kaltara_18',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Kaltara_18');
+        map.getPane('pane_Kaltara_18').style.zIndex = 418;
+        map.getPane('pane_Kaltara_18').style['mix-blend-mode'] = 'normal';
+        var layer_Kaltara_18 = new L.geoJson(json_Kaltara_18, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Kaltara_18',
+            layerName: 'layer_Kaltara_18',
+            pane: 'pane_Kaltara_18',
+            onEachFeature: pop_Kaltara_18,
+            style: style_Kaltara_18_0,
+        });
+        bounds_group.addLayer(layer_Kaltara_18);
+        map.addLayer(layer_Kaltara_18);
+        function pop_Kaltim_19(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Kaltim_19_0() {
+            return {
+                pane: 'pane_Kaltim_19',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Kaltim_19');
+        map.getPane('pane_Kaltim_19').style.zIndex = 419;
+        map.getPane('pane_Kaltim_19').style['mix-blend-mode'] = 'normal';
+        var layer_Kaltim_19 = new L.geoJson(json_Kaltim_19, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Kaltim_19',
+            layerName: 'layer_Kaltim_19',
+            pane: 'pane_Kaltim_19',
+            onEachFeature: pop_Kaltim_19,
+            style: style_Kaltim_19_0,
+        });
+        bounds_group.addLayer(layer_Kaltim_19);
+        map.addLayer(layer_Kaltim_19);
+        function pop_Kalteng_20(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Kalteng_20_0() {
+            return {
+                pane: 'pane_Kalteng_20',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Kalteng_20');
+        map.getPane('pane_Kalteng_20').style.zIndex = 420;
+        map.getPane('pane_Kalteng_20').style['mix-blend-mode'] = 'normal';
+        var layer_Kalteng_20 = new L.geoJson(json_Kalteng_20, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Kalteng_20',
+            layerName: 'layer_Kalteng_20',
+            pane: 'pane_Kalteng_20',
+            onEachFeature: pop_Kalteng_20,
+            style: style_Kalteng_20_0,
+        });
+        bounds_group.addLayer(layer_Kalteng_20);
+        map.addLayer(layer_Kalteng_20);
+        function pop_Kalsel_21(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Kalsel_21_0() {
+            return {
+                pane: 'pane_Kalsel_21',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Kalsel_21');
+        map.getPane('pane_Kalsel_21').style.zIndex = 421;
+        map.getPane('pane_Kalsel_21').style['mix-blend-mode'] = 'normal';
+        var layer_Kalsel_21 = new L.geoJson(json_Kalsel_21, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Kalsel_21',
+            layerName: 'layer_Kalsel_21',
+            pane: 'pane_Kalsel_21',
+            onEachFeature: pop_Kalsel_21,
+            style: style_Kalsel_21_0,
+        });
+        bounds_group.addLayer(layer_Kalsel_21);
+        map.addLayer(layer_Kalsel_21);
+        function pop_Kalbar_22(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Kalbar_22_0() {
+            return {
+                pane: 'pane_Kalbar_22',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(0,170,155,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Kalbar_22');
+        map.getPane('pane_Kalbar_22').style.zIndex = 422;
+        map.getPane('pane_Kalbar_22').style['mix-blend-mode'] = 'normal';
+        var layer_Kalbar_22 = new L.geoJson(json_Kalbar_22, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Kalbar_22',
+            layerName: 'layer_Kalbar_22',
+            pane: 'pane_Kalbar_22',
+            onEachFeature: pop_Kalbar_22,
+            style: style_Kalbar_22_0,
+        });
+        bounds_group.addLayer(layer_Kalbar_22);
+        map.addLayer(layer_Kalbar_22);
+        function pop_Banten_23(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Banten_23_0() {
+            return {
+                pane: 'pane_Banten_23',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,233,216,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Banten_23');
+        map.getPane('pane_Banten_23').style.zIndex = 423;
+        map.getPane('pane_Banten_23').style['mix-blend-mode'] = 'normal';
+        var layer_Banten_23 = new L.geoJson(json_Banten_23, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Banten_23',
+            layerName: 'layer_Banten_23',
+            pane: 'pane_Banten_23',
+            onEachFeature: pop_Banten_23,
+            style: style_Banten_23_0,
+        });
+        bounds_group.addLayer(layer_Banten_23);
+        map.addLayer(layer_Banten_23);
+        function pop_Jatim_24(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Jatim_24_0() {
+            return {
+                pane: 'pane_Jatim_24',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,233,216,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Jatim_24');
+        map.getPane('pane_Jatim_24').style.zIndex = 424;
+        map.getPane('pane_Jatim_24').style['mix-blend-mode'] = 'normal';
+        var layer_Jatim_24 = new L.geoJson(json_Jatim_24, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Jatim_24',
+            layerName: 'layer_Jatim_24',
+            pane: 'pane_Jatim_24',
+            onEachFeature: pop_Jatim_24,
+            style: style_Jatim_24_0,
+        });
+        bounds_group.addLayer(layer_Jatim_24);
+        map.addLayer(layer_Jatim_24);
+        function pop_Jateng_25(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Jateng_25_0() {
+            return {
+                pane: 'pane_Jateng_25',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,233,216,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Jateng_25');
+        map.getPane('pane_Jateng_25').style.zIndex = 425;
+        map.getPane('pane_Jateng_25').style['mix-blend-mode'] = 'normal';
+        var layer_Jateng_25 = new L.geoJson(json_Jateng_25, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Jateng_25',
+            layerName: 'layer_Jateng_25',
+            pane: 'pane_Jateng_25',
+            onEachFeature: pop_Jateng_25,
+            style: style_Jateng_25_0,
+        });
+        bounds_group.addLayer(layer_Jateng_25);
+        map.addLayer(layer_Jateng_25);
+        function pop_Jabar_26(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Jabar_26_0() {
+            return {
+                pane: 'pane_Jabar_26',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,233,216,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Jabar_26');
+        map.getPane('pane_Jabar_26').style.zIndex = 426;
+        map.getPane('pane_Jabar_26').style['mix-blend-mode'] = 'normal';
+        var layer_Jabar_26 = new L.geoJson(json_Jabar_26, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Jabar_26',
+            layerName: 'layer_Jabar_26',
+            pane: 'pane_Jabar_26',
+            onEachFeature: pop_Jabar_26,
+            style: style_Jabar_26_0,
+        });
+        bounds_group.addLayer(layer_Jabar_26);
+        map.addLayer(layer_Jabar_26);
+        function pop_Jakarta_27(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Jakarta_27_0() {
+            return {
+                pane: 'pane_Jakarta_27',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,233,216,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Jakarta_27');
+        map.getPane('pane_Jakarta_27').style.zIndex = 427;
+        map.getPane('pane_Jakarta_27').style['mix-blend-mode'] = 'normal';
+        var layer_Jakarta_27 = new L.geoJson(json_Jakarta_27, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Jakarta_27',
+            layerName: 'layer_Jakarta_27',
+            pane: 'pane_Jakarta_27',
+            onEachFeature: pop_Jakarta_27,
+            style: style_Jakarta_27_0,
+        });
+        bounds_group.addLayer(layer_Jakarta_27);
+        map.addLayer(layer_Jakarta_27);
+        function pop_DIY_28(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_DIY_28_0() {
+            return {
+                pane: 'pane_DIY_28',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,233,216,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_DIY_28');
+        map.getPane('pane_DIY_28').style.zIndex = 428;
+        map.getPane('pane_DIY_28').style['mix-blend-mode'] = 'normal';
+        var layer_DIY_28 = new L.geoJson(json_DIY_28, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_DIY_28',
+            layerName: 'layer_DIY_28',
+            pane: 'pane_DIY_28',
+            onEachFeature: pop_DIY_28,
+            style: style_DIY_28_0,
+        });
+        bounds_group.addLayer(layer_DIY_28);
+        map.addLayer(layer_DIY_28);
+        function pop_Lampung_29(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Lampung_29_0() {
+            return {
+                pane: 'pane_Lampung_29',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,175,106,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Lampung_29');
+        map.getPane('pane_Lampung_29').style.zIndex = 429;
+        map.getPane('pane_Lampung_29').style['mix-blend-mode'] = 'normal';
+        var layer_Lampung_29 = new L.geoJson(json_Lampung_29, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Lampung_29',
+            layerName: 'layer_Lampung_29',
+            pane: 'pane_Lampung_29',
+            onEachFeature: pop_Lampung_29,
+            style: style_Lampung_29_0,
+        });
+        bounds_group.addLayer(layer_Lampung_29);
+        map.addLayer(layer_Lampung_29);
+        function pop_Bengkulu_30(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Bengkulu_30_0() {
+            return {
+                pane: 'pane_Bengkulu_30',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,175,106,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Bengkulu_30');
+        map.getPane('pane_Bengkulu_30').style.zIndex = 430;
+        map.getPane('pane_Bengkulu_30').style['mix-blend-mode'] = 'normal';
+        var layer_Bengkulu_30 = new L.geoJson(json_Bengkulu_30, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Bengkulu_30',
+            layerName: 'layer_Bengkulu_30',
+            pane: 'pane_Bengkulu_30',
+            onEachFeature: pop_Bengkulu_30,
+            style: style_Bengkulu_30_0,
+        });
+        bounds_group.addLayer(layer_Bengkulu_30);
+        map.addLayer(layer_Bengkulu_30);
+        function pop_Jambi_31(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Jambi_31_0() {
+            return {
+                pane: 'pane_Jambi_31',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,175,106,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Jambi_31');
+        map.getPane('pane_Jambi_31').style.zIndex = 431;
+        map.getPane('pane_Jambi_31').style['mix-blend-mode'] = 'normal';
+        var layer_Jambi_31 = new L.geoJson(json_Jambi_31, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Jambi_31',
+            layerName: 'layer_Jambi_31',
+            pane: 'pane_Jambi_31',
+            onEachFeature: pop_Jambi_31,
+            style: style_Jambi_31_0,
+        });
+        bounds_group.addLayer(layer_Jambi_31);
+        map.addLayer(layer_Jambi_31);
+        function pop_BangkaBel_32(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_BangkaBel_32_0() {
+            return {
+                pane: 'pane_BangkaBel_32',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,175,106,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_BangkaBel_32');
+        map.getPane('pane_BangkaBel_32').style.zIndex = 432;
+        map.getPane('pane_BangkaBel_32').style['mix-blend-mode'] = 'normal';
+        var layer_BangkaBel_32 = new L.geoJson(json_BangkaBel_32, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_BangkaBel_32',
+            layerName: 'layer_BangkaBel_32',
+            pane: 'pane_BangkaBel_32',
+            onEachFeature: pop_BangkaBel_32,
+            style: style_BangkaBel_32_0,
+        });
+        bounds_group.addLayer(layer_BangkaBel_32);
+        map.addLayer(layer_BangkaBel_32);
+        function pop_KepRiau_33(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_KepRiau_33_0() {
+            return {
+                pane: 'pane_KepRiau_33',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,175,106,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_KepRiau_33');
+        map.getPane('pane_KepRiau_33').style.zIndex = 433;
+        map.getPane('pane_KepRiau_33').style['mix-blend-mode'] = 'normal';
+        var layer_KepRiau_33 = new L.geoJson(json_KepRiau_33, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_KepRiau_33',
+            layerName: 'layer_KepRiau_33',
+            pane: 'pane_KepRiau_33',
+            onEachFeature: pop_KepRiau_33,
+            style: style_KepRiau_33_0,
+        });
+        bounds_group.addLayer(layer_KepRiau_33);
+        map.addLayer(layer_KepRiau_33);
+        function pop_Riau_34(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Riau_34_0() {
+            return {
+                pane: 'pane_Riau_34',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,175,106,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Riau_34');
+        map.getPane('pane_Riau_34').style.zIndex = 434;
+        map.getPane('pane_Riau_34').style['mix-blend-mode'] = 'normal';
+        var layer_Riau_34 = new L.geoJson(json_Riau_34, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Riau_34',
+            layerName: 'layer_Riau_34',
+            pane: 'pane_Riau_34',
+            onEachFeature: pop_Riau_34,
+            style: style_Riau_34_0,
+        });
+        bounds_group.addLayer(layer_Riau_34);
+        map.addLayer(layer_Riau_34);
+        function pop_Aceh_35(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Aceh_35_0() {
+            return {
+                pane: 'pane_Aceh_35',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,175,106,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Aceh_35');
+        map.getPane('pane_Aceh_35').style.zIndex = 435;
+        map.getPane('pane_Aceh_35').style['mix-blend-mode'] = 'normal';
+        var layer_Aceh_35 = new L.geoJson(json_Aceh_35, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Aceh_35',
+            layerName: 'layer_Aceh_35',
+            pane: 'pane_Aceh_35',
+            onEachFeature: pop_Aceh_35,
+            style: style_Aceh_35_0,
+        });
+        bounds_group.addLayer(layer_Aceh_35);
+        map.addLayer(layer_Aceh_35);
+        function pop_Sumatera_Utara_36(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Sumatera_Utara_36_0() {
+            return {
+                pane: 'pane_Sumatera_Utara_36',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,175,106,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Sumatera_Utara_36');
+        map.getPane('pane_Sumatera_Utara_36').style.zIndex = 436;
+        map.getPane('pane_Sumatera_Utara_36').style['mix-blend-mode'] = 'normal';
+        var layer_Sumatera_Utara_36 = new L.geoJson(json_Sumatera_Utara_36, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Sumatera_Utara_36',
+            layerName: 'layer_Sumatera_Utara_36',
+            pane: 'pane_Sumatera_Utara_36',
+            onEachFeature: pop_Sumatera_Utara_36,
+            style: style_Sumatera_Utara_36_0,
+        });
+        bounds_group.addLayer(layer_Sumatera_Utara_36);
+        map.addLayer(layer_Sumatera_Utara_36);
+        function pop_Sumatera_Selatan_37(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Sumatera_Selatan_37_0() {
+            return {
+                pane: 'pane_Sumatera_Selatan_37',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,175,106,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Sumatera_Selatan_37');
+        map.getPane('pane_Sumatera_Selatan_37').style.zIndex = 437;
+        map.getPane('pane_Sumatera_Selatan_37').style['mix-blend-mode'] = 'normal';
+        var layer_Sumatera_Selatan_37 = new L.geoJson(json_Sumatera_Selatan_37, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Sumatera_Selatan_37',
+            layerName: 'layer_Sumatera_Selatan_37',
+            pane: 'pane_Sumatera_Selatan_37',
+            onEachFeature: pop_Sumatera_Selatan_37,
+            style: style_Sumatera_Selatan_37_0,
+        });
+        bounds_group.addLayer(layer_Sumatera_Selatan_37);
+        map.addLayer(layer_Sumatera_Selatan_37);
+        function pop_Sumatera_Barat_38(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Sumatera_Barat_38_0() {
+            return {
+                pane: 'pane_Sumatera_Barat_38',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '10.0,2.0',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(208,175,106,1.0)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_Sumatera_Barat_38');
+        map.getPane('pane_Sumatera_Barat_38').style.zIndex = 438;
+        map.getPane('pane_Sumatera_Barat_38').style['mix-blend-mode'] = 'normal';
+        var layer_Sumatera_Barat_38 = new L.geoJson(json_Sumatera_Barat_38, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Sumatera_Barat_38',
+            layerName: 'layer_Sumatera_Barat_38',
+            pane: 'pane_Sumatera_Barat_38',
+            onEachFeature: pop_Sumatera_Barat_38,
+            style: style_Sumatera_Barat_38_0,
+        });
+        bounds_group.addLayer(layer_Sumatera_Barat_38);
+        map.addLayer(layer_Sumatera_Barat_38);
+        function pop_BatasKabupatenKota_39(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">KabKota</th>\
+                        <td class="visible-with-data" id="KabKota">' + (feature.properties['KabKota'] !== null ? autolinker.link(String(feature.properties['KabKota']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_BatasKabupatenKota_39_0() {
+            return {
+                pane: 'pane_BatasKabupatenKota_39',
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '4.0,2.0,1.0,2.0,1.0,2.0',
+                lineCap: 'square',
+                lineJoin: 'bevel',
+                weight: 1.0,
+                fillOpacity: 0,
+                interactive: true,
+            }
+        }
+        map.createPane('pane_BatasKabupatenKota_39');
+        map.getPane('pane_BatasKabupatenKota_39').style.zIndex = 439;
+        map.getPane('pane_BatasKabupatenKota_39').style['mix-blend-mode'] = 'normal';
+        var layer_BatasKabupatenKota_39 = new L.geoJson(json_BatasKabupatenKota_39, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_BatasKabupatenKota_39',
+            layerName: 'layer_BatasKabupatenKota_39',
+            pane: 'pane_BatasKabupatenKota_39',
+            onEachFeature: pop_BatasKabupatenKota_39,
+            style: style_BatasKabupatenKota_39_0,
+        });
+        bounds_group.addLayer(layer_BatasKabupatenKota_39);
+        map.addLayer(layer_BatasKabupatenKota_39);
+        function pop_Wilayah3T_40(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">KabKota</th>\
+                        <td class="visible-with-data" id="KabKota">' + (feature.properties['KabKota'] !== null ? autolinker.link(String(feature.properties['KabKota']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Status</th>\
+                        <td class="visible-with-data" id="Status">' + (feature.properties['Status'] !== null ? autolinker.link(String(feature.properties['Status']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_Wilayah3T_40_0(feature) {
+            switch(String(feature.properties['Status'])) {
+                case 'Sangat Tertinggal':
+                    return {
+                pane: 'pane_Wilayah3T_40',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(235,108,89,1.0)',
+                interactive: true,
+            }
+                    break;
+                case 'Tertinggal':
+                    return {
+                pane: 'pane_Wilayah3T_40',
+                opacity: 1,
+                color: 'rgba(35,35,35,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(253,167,5,1.0)',
+                interactive: true,
+            }
+                    break;
+            }
+        }
+        map.createPane('pane_Wilayah3T_40');
+        map.getPane('pane_Wilayah3T_40').style.zIndex = 440;
+        map.getPane('pane_Wilayah3T_40').style['mix-blend-mode'] = 'normal';
+        var layer_Wilayah3T_40 = new L.geoJson(json_Wilayah3T_40, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Wilayah3T_40',
+            layerName: 'layer_Wilayah3T_40',
+            pane: 'pane_Wilayah3T_40',
+            onEachFeature: pop_Wilayah3T_40,
+            style: style_Wilayah3T_40_0,
+        });
+        bounds_group.addLayer(layer_Wilayah3T_40);
+        function pop_TitikSPPG1Agustus2025_41(feature, layer) {
+            var popupContent = '<table>\
+                    <tr>\
+                        <th scope="row">Provinsi</th>\
+                        <td class="visible-with-data" id="Provinsi">' + (feature.properties['Provinsi'] !== null ? autolinker.link(String(feature.properties['Provinsi']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Kabupaten</th>\
+                        <td class="visible-with-data" id="Kabupaten">' + (feature.properties['Kabupaten'] !== null ? autolinker.link(String(feature.properties['Kabupaten']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Kecamatan</th>\
+                        <td class="visible-with-data" id="Kecamatan">' + (feature.properties['Kecamatan'] !== null ? autolinker.link(String(feature.properties['Kecamatan']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Kelurahan</th>\
+                        <td class="visible-with-data" id="Kelurahan">' + (feature.properties['Kelurahan'] !== null ? autolinker.link(String(feature.properties['Kelurahan']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Alamat SPPG</th>\
+                        <td class="visible-with-data" id="Alamat SPPG">' + (feature.properties['Alamat SPPG'] !== null ? autolinker.link(String(feature.properties['Alamat SPPG']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Nama SPPG</th>\
+                        <td class="visible-with-data" id="Nama SPPG">' + (feature.properties['Nama SPPG'] !== null ? autolinker.link(String(feature.properties['Nama SPPG']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Tanggal Opsnal</th>\
+                        <td class="visible-with-data" id="Tanggal Opsnal">' + (feature.properties['Tanggal Opsnal'] !== null ? autolinker.link(String(feature.properties['Tanggal Opsnal']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                    <tr>\
+                        <th scope="row">Penerima Manfaat</th>\
+                        <td class="visible-with-data" id="Penerima Manfaat">' + (feature.properties['Penerima Manfaat'] !== null ? autolinker.link(String(feature.properties['Penerima Manfaat']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
+                    </tr>\
+                </table>';
+            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+			layer.on('popupopen', function(e) {
+				addClassToPopupIfMedia(content, e.popup);
+			});
+			layer.bindPopup(content, { maxHeight: 400 });
+        }
+
+        function style_TitikSPPG1Agustus2025_41_0() {
+            return {
+                pane: 'pane_TitikSPPG1Agustus2025_41',
+        rotationAngle: 0.0,
+        rotationOrigin: 'center center',
+        icon: L.icon({
+            iconUrl: 'markers/TitikSPPG1Agustus2025_41.svg',
+            iconSize: [26.599999999999998, 26.599999999999998]
+        }),
+                interactive: true,
+            }
+        }
+        map.createPane('pane_TitikSPPG1Agustus2025_41');
+        map.getPane('pane_TitikSPPG1Agustus2025_41').style.zIndex = 441;
+        map.getPane('pane_TitikSPPG1Agustus2025_41').style['mix-blend-mode'] = 'normal';
+        var layer_TitikSPPG1Agustus2025_41 = new L.geoJson(json_TitikSPPG1Agustus2025_41, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_TitikSPPG1Agustus2025_41',
+            layerName: 'layer_TitikSPPG1Agustus2025_41',
+            pane: 'pane_TitikSPPG1Agustus2025_41',
+            onEachFeature: pop_TitikSPPG1Agustus2025_41,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.marker(latlng, style_TitikSPPG1Agustus2025_41_0(feature));
+            },
+        });
+        var cluster_TitikSPPG1Agustus2025_41 = new L.MarkerClusterGroup({showCoverageOnHover: false,
+            spiderfyDistanceMultiplier: 2});
+        cluster_TitikSPPG1Agustus2025_41.addLayer(layer_TitikSPPG1Agustus2025_41);
+
+        bounds_group.addLayer(layer_TitikSPPG1Agustus2025_41);
+        cluster_TitikSPPG1Agustus2025_41.addTo(map);
+        map.on("zoomend", function(e) {
+            if (map.getZoom() <= 19 && map.getZoom() >= 7) {
+                map.addLayer(cluster_TitikSPPG1Agustus2025_41);
+            } else if (map.getZoom() > 19 || map.getZoom() < 7) {
+                map.removeLayer(cluster_TitikSPPG1Agustus2025_41);
+            }
+        });
+            if (map.getZoom() <= 19 && map.getZoom() >= 7) {
+                map.addLayer(cluster_TitikSPPG1Agustus2025_41);
+            } else if (map.getZoom() > 19 || map.getZoom() < 7) {
+                map.removeLayer(cluster_TitikSPPG1Agustus2025_41);
+            }
+        var overlaysTree = [
+            {label: '<img src="legend/TitikSPPG1Agustus2025_41.png" /> Titik SPPG 1 Agustus 2025', layer: cluster_TitikSPPG1Agustus2025_41},
+            {label: 'Wilayah 3T<br /><table><tr><td style="text-align: center;"><img src="legend/Wilayah3T_40_SangatTertinggal0.png" /></td><td>Sangat Tertinggal</td></tr><tr><td style="text-align: center;"><img src="legend/Wilayah3T_40_Tertinggal1.png" /></td><td>Tertinggal</td></tr></table>', layer: layer_Wilayah3T_40},
+            {label: '<img src="legend/BatasKabupatenKota_39.png" /> Batas Kabupaten Kota', layer: layer_BatasKabupatenKota_39},
+        {label: '<b>WILAYAH I</b>', collapsed: true, selectAllCheckbox: true, children: [
+            {label: '<img src="legend/Sumatera_Barat_38.png" /> Sumatera_Barat', layer: layer_Sumatera_Barat_38},
+            {label: '<img src="legend/Sumatera_Selatan_37.png" /> Sumatera_Selatan', layer: layer_Sumatera_Selatan_37},
+            {label: '<img src="legend/Sumatera_Utara_36.png" /> Sumatera_Utara', layer: layer_Sumatera_Utara_36},
+            {label: '<img src="legend/Aceh_35.png" /> Aceh', layer: layer_Aceh_35},
+            {label: '<img src="legend/Riau_34.png" /> Riau', layer: layer_Riau_34},
+            {label: '<img src="legend/KepRiau_33.png" /> KepRiau', layer: layer_KepRiau_33},
+            {label: '<img src="legend/BangkaBel_32.png" /> BangkaBel', layer: layer_BangkaBel_32},
+            {label: '<img src="legend/Jambi_31.png" /> Jambi', layer: layer_Jambi_31},
+            {label: '<img src="legend/Bengkulu_30.png" /> Bengkulu', layer: layer_Bengkulu_30},
+            {label: '<img src="legend/Lampung_29.png" /> Lampung', layer: layer_Lampung_29},]},
+        {label: '<b>WILAYAH II</b>', collapsed: true, selectAllCheckbox: true, children: [
+            {label: '<img src="legend/DIY_28.png" /> DIY', layer: layer_DIY_28},
+            {label: '<img src="legend/Jakarta_27.png" /> Jakarta', layer: layer_Jakarta_27},
+            {label: '<img src="legend/Jabar_26.png" /> Jabar', layer: layer_Jabar_26},
+            {label: '<img src="legend/Jateng_25.png" /> Jateng', layer: layer_Jateng_25},
+            {label: '<img src="legend/Jatim_24.png" /> Jatim', layer: layer_Jatim_24},
+            {label: '<img src="legend/Banten_23.png" /> Banten', layer: layer_Banten_23},]},
+        {label: '<b>WILAYAH III</b>', collapsed: true, selectAllCheckbox: true, children: [
+            {label: '<img src="legend/Kalbar_22.png" /> Kalbar', layer: layer_Kalbar_22},
+            {label: '<img src="legend/Kalsel_21.png" /> Kalsel', layer: layer_Kalsel_21},
+            {label: '<img src="legend/Kalteng_20.png" /> Kalteng', layer: layer_Kalteng_20},
+            {label: '<img src="legend/Kaltim_19.png" /> Kaltim', layer: layer_Kaltim_19},
+            {label: '<img src="legend/Kaltara_18.png" /> Kaltara', layer: layer_Kaltara_18},
+            {label: '<img src="legend/Maluku_17.png" /> Maluku', layer: layer_Maluku_17},
+            {label: '<img src="legend/Malut_16.png" /> Malut', layer: layer_Malut_16},
+            {label: '<img src="legend/NTB_15.png" /> NTB', layer: layer_NTB_15},
+            {label: '<img src="legend/NTT_14.png" /> NTT', layer: layer_NTT_14},
+            {label: '<img src="legend/Gorontalo_13.png" /> Gorontalo', layer: layer_Gorontalo_13},
+            {label: '<img src="legend/Papua_12.png" /> Papua', layer: layer_Papua_12},
+            {label: '<img src="legend/Papua_Barat_11.png" /> Papua_Barat', layer: layer_Papua_Barat_11},
+            {label: '<img src="legend/Papua_Barat_Daya_10.png" /> Papua_Barat_Daya', layer: layer_Papua_Barat_Daya_10},
+            {label: '<img src="legend/Papua_Pegunungan_9.png" /> Papua_Pegunungan', layer: layer_Papua_Pegunungan_9},
+            {label: '<img src="legend/Papua_Selatan_8.png" /> Papua_Selatan', layer: layer_Papua_Selatan_8},
+            {label: '<img src="legend/Papua_Tengah_7.png" /> Papua_Tengah', layer: layer_Papua_Tengah_7},
+            {label: '<img src="legend/Sulawesi_Barat_6.png" /> Sulawesi_Barat', layer: layer_Sulawesi_Barat_6},
+            {label: '<img src="legend/Sulawesi_Selatan_5.png" /> Sulawesi_Selatan', layer: layer_Sulawesi_Selatan_5},
+            {label: '<img src="legend/Sulawesi_Tengah_4.png" /> Sulawesi_Tengah', layer: layer_Sulawesi_Tengah_4},
+            {label: '<img src="legend/Sulawesi_Tenggara_3.png" /> Sulawesi_Tenggara', layer: layer_Sulawesi_Tenggara_3},
+            {label: '<img src="legend/Sulawesi_Utara_2.png" /> Sulawesi_Utara', layer: layer_Sulawesi_Utara_2},
+            {label: '<img src="legend/Bali_1.png" /> Bali', layer: layer_Bali_1},]},
+            {label: "OpenStreetMap", layer: layer_OpenStreetMap_0},]
+        var lay = L.control.layers.tree(null, overlaysTree,{
+            //namedToggle: true,
+            //selectorBack: false,
+            //closedSymbol: '&#8862; &#x1f5c0;',
+            //openedSymbol: '&#8863; &#x1f5c1;',
+            //collapseAll: 'Collapse all',
+            //expandAll: 'Expand all',
+            collapsed: true,
+        });
+        lay.addTo(map);
+        setBounds();
+        </script>
+    </body>
+</html>
